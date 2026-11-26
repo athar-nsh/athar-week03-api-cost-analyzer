@@ -34,12 +34,16 @@ Key findings: output is 92% of the bill; hidden reasoning tokens are 31% of the 
 
 ## Setup
 
+Tested on Windows with Python 3.14.0, `openai` 3.60.0 and `tiktoken` 0.14.0.
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # Windows  (macOS/Linux: source .venv/bin/activate)
 pip install -r requirements.txt
 copy .env.example .env            # then paste your key into .env
 ```
+
+> If PowerShell blocks the activate script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.
 
 > 🔒 The API key goes in `.env` only. `.env` is listed in `.gitignore`, so it is never pushed to GitHub.
 
@@ -69,7 +73,7 @@ cost = (prompt − cached) × input_rate + cached × cached_input_rate + complet
 ```
 Rates are in USD per 1M tokens. Reasoning tokens are already counted inside `completion_tokens`, so they are billed at the output rate.
 
-Default prices in `pricing.json` (OpenAI standard tier, checked 2026-11-26; **check the [official pricing page](https://developers.openai.com/api/docs/pricing) before relying on totals**):
+Default prices in `pricing.json` (OpenAI standard tier as listed by public price trackers on 2026-11-26, not read from OpenAI's own page; **check the [official pricing page](https://developers.openai.com/api/docs/pricing) before relying on totals**):
 
 | Model | Input | Cached input | Output |
 |---|---:|---:|---:|
@@ -85,11 +89,13 @@ pricing.json             model prices (edit here, not in code)
 prompts/templates.json   system instruction + 3 CS461 templates
 prompts/batch.jsonl      sample batch
 tests/test_cost.py       9 offline tests
-reports/                 generated logs and reports (git-ignored, except the sample)
+reports/RESULTS_week03.md   results of the real run (tables + findings)
+reports/SAMPLE_mock_report.md  report format from an offline mock run
+reports/                 other generated logs and reports are git-ignored
 ```
 
 ## Design choices & limitations
 
-- **Pre-call token estimate.** `tiktoken` has no official mapping for `gpt-6-luna` yet, so the script uses the `o200k_base` encoding and labels the estimate "assumed". In the real run this estimate was within **1 token of the API count on every request (+0.9% mean error)**. If no tokenizer can be loaded, the script falls back to about 4 characters per token and says so. Billing always uses the API's own `usage` figures, never the estimate.
+- **Pre-call token estimate.** `tiktoken` 0.14.0 has no mapping for `gpt-6-luna`, so the script uses the `o200k_base` encoding and labels the estimate "assumed". In the real run this estimate was within **1 token of the API count on every request (+0.9% mean error)**. If no tokenizer can be loaded, the script falls back to about 4 characters per token and says so. Billing always uses the API's own `usage` figures, never the estimate.
 - **Prices are data, not code.** Rates live in `pricing.json` and must be checked against the official pricing page, since providers change them.
 - **Offline mode for testing and teaching.** `--mock` runs the whole pipeline without a key or cost, so the 9 unit tests and classroom demos need no API access. `reports/SAMPLE_mock_report.md` shows the report format from such a run; the real results are in `reports/RESULTS_week03.md`.

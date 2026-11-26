@@ -1,5 +1,5 @@
 {
-  "_note": "USD per 1M tokens, OpenAI standard tier. Verify on https://developers.openai.com/api/docs/pricing before relying on totals. Checked 2026-11-26.",
+  "_note": "USD per 1M tokens, OpenAI standard tier as listed by public price trackers (not read from OpenAI directly). Verify on https://developers.openai.com/api/docs/pricing before relying on totals. Checked 2026-11-26.",
   "currency": "USD",
   "models": {
     "gpt-6-luna": {
