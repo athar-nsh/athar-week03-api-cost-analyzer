@@ -15,9 +15,10 @@ A Python script that calls the OpenAI **Chat Completions API** and analyses the 
 | 2 | Counts input tokens **before** the call with `tiktoken` and estimates the cost | Token economics |
 | 3 | Calls `chat.completions.create`, optionally with **streaming** (`stream_options={"include_usage": true}`) | Direct API integration, streaming |
 | 4 | Reads the real `usage` the API returns: prompt, **cached**, completion and **reasoning** tokens | Token economics |
-| 5 | Works out the cost from `pricing.json` (cached-input rate, long-context rate) and compares estimate with actual | Cost calculation |
+| 5 | Works out the cost from `pricing.json` (Standard input, cached-input and output rates; long-context rates above 272K input tokens) and compares estimate with actual | Cost calculation |
 | 6 | Logs every request to `reports/usage_log.csv` and writes a Markdown report, including a **what-if** table showing the same usage on other models | Cost analysis |
 | + | `--budget` stops a batch before it goes over a set spend; `--mock` runs everything offline | Cost control |
+| + | `--update-prices` reads OpenAI's official pricing page, shows what changed and saves only after you confirm | Token economics (prices change) |
 
 ## Results (real run, 2026-11-26)
 
@@ -62,6 +63,12 @@ python chat_cost_analyzer.py --batch prompts/batch.jsonl --budget 0.05
 # Offline test of the full pipeline (no key, no cost)
 python chat_cost_analyzer.py --batch prompts/batch.jsonl --mock
 
+# Refresh prices from OpenAI's official pricing page (shows changes, asks before saving)
+python chat_cost_analyzer.py --update-prices
+
+# Same, from a saved copy of the page (e.g. offline)
+python chat_cost_analyzer.py --update-prices --prices-from-file pricing_page.md
+
 # Unit tests (offline)
 pytest -q
 ```
@@ -71,9 +78,9 @@ pytest -q
 ```
 cost = (prompt − cached) × input_rate + cached × cached_input_rate + completion × output_rate
 ```
-Rates are in USD per 1M tokens. Reasoning tokens are already counted inside `completion_tokens`, so they are billed at the output rate.
+Rates are in USD per 1M tokens. Reasoning tokens are already counted inside `completion_tokens`, so they are billed at the output rate. Requests above 272K input tokens use the page's long-context rates, which are also stored in `pricing.json`.
 
-Default prices in `pricing.json` (OpenAI standard tier as listed by public price trackers on 2026-11-26, not read from OpenAI's own page; **check the [official pricing page](https://developers.openai.com/api/docs/pricing) before relying on totals**):
+Default prices in `pricing.json` come from OpenAI's [official pricing page](https://developers.openai.com/api/docs/pricing), Standard tier, checked 2026-11-27. This is the source the course points to (Mahara-Tech VID05, *OpenAI APIs: Pricing Model*). Prices change, so re-check before relying on totals:
 
 | Model | Input | Cached input | Output |
 |---|---:|---:|---:|
@@ -85,10 +92,11 @@ Default prices in `pricing.json` (OpenAI standard tier as listed by public price
 
 ```
 chat_cost_analyzer.py    main script
-pricing.json             model prices (edit here, not in code)
+pricing.json             model prices (Standard + long-context rates)
+price_updater.py         reads the official pricing page for --update-prices
 prompts/templates.json   system instruction + 3 CS461 templates
 prompts/batch.jsonl      sample batch
-tests/test_cost.py       9 offline tests
+tests/                   14 offline tests (cost maths, templates, mock pipeline, price parsing)
 reports/RESULTS_week03.md   results of the real run (tables + findings)
 reports/SAMPLE_mock_report.md  report format from an offline mock run
 reports/                 other generated logs and reports are git-ignored
@@ -97,5 +105,6 @@ reports/                 other generated logs and reports are git-ignored
 ## Design choices & limitations
 
 - **Pre-call token estimate.** `tiktoken` 0.14.0 has no mapping for `gpt-6-luna`, so the script uses the `o200k_base` encoding and labels the estimate "assumed". In the real run this estimate was within **1 token of the API count on every request (+0.9% mean error)**. If no tokenizer can be loaded, the script falls back to about 4 characters per token and says so. Billing always uses the API's own `usage` figures, never the estimate.
-- **Prices are data, not code.** Rates live in `pricing.json` and must be checked against the official pricing page, since providers change them.
-- **Offline mode for testing and teaching.** `--mock` runs the whole pipeline without a key or cost, so the 9 unit tests and classroom demos need no API access. `reports/SAMPLE_mock_report.md` shows the report format from such a run; the real results are in `reports/RESULTS_week03.md`.
+- **Prices are data, not code.** Rates live in `pricing.json`, taken from OpenAI's official pricing page.
+- **Price updates are confirmed, not automatic.** OpenAI publishes prices on a web page, not through an API, and the page lists each model several times (Standard, Batch, Flex, Fast, Ultrafast). Reading the wrong table would silently give wrong costs. So `--update-prices` reads **only** the *Standard pricing data* table from the Markdown copy of the page, stops if that table is missing or a value looks implausible, shows every change, and writes only after confirmation (keeping a `.bak` copy). Prices are not fetched on every run, so each report stays tied to known, dated prices.
+- **Offline mode for testing and teaching.** `--mock` runs the whole pipeline without a key or cost, so the unit tests and classroom demos need no API access. `reports/SAMPLE_mock_report.md` shows the report format from such a run; the real results are in `reports/RESULTS_week03.md`.

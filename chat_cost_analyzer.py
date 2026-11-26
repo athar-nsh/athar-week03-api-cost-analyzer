@@ -16,6 +16,7 @@ Usage examples
   python chat_cost_analyzer.py --prompt "What is an inference engine?"
   python chat_cost_analyzer.py --batch prompts/batch.jsonl
   python chat_cost_analyzer.py --batch prompts/batch.jsonl --mock     # offline, no API key needed
+  python chat_cost_analyzer.py --update-prices                       # refresh pricing.json from OpenAI
 """
 from __future__ import annotations
 
@@ -58,9 +59,14 @@ def compute_cost(model: str, prompt_tokens: int, completion_tokens: int,
     long_ctx = p.get("long_context")
     is_long = bool(long_ctx) and prompt_tokens > long_ctx["threshold_tokens"]
     if is_long:
-        in_rate *= long_ctx["input_multiplier"]
-        cached_rate *= long_ctx["input_multiplier"]
-        out_rate *= long_ctx["output_multiplier"]
+        if "input" in long_ctx:  # explicit long-context rates (as published by OpenAI)
+            in_rate = long_ctx["input"]
+            cached_rate = long_ctx.get("cached_input", in_rate)
+            out_rate = long_ctx["output"]
+        else:  # multiplier form
+            in_rate *= long_ctx["input_multiplier"]
+            cached_rate *= long_ctx["input_multiplier"]
+            out_rate *= long_ctx["output_multiplier"]
 
     cached_tokens = min(cached_tokens, prompt_tokens)
     uncached = prompt_tokens - cached_tokens
@@ -370,7 +376,7 @@ def parse_vars(items: list[str]) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Chat Completion API call with token & cost analysis")
-    src = ap.add_mutually_exclusive_group(required=True)
+    src = ap.add_mutually_exclusive_group()
     src.add_argument("--prompt", help="free-text user prompt")
     src.add_argument("--template", help="template name from prompts/templates.json")
     src.add_argument("--batch", help="JSONL file: one {template, vars} or {prompt} per line")
@@ -380,7 +386,28 @@ def main(argv=None) -> int:
     ap.add_argument("--max-tokens", type=int, default=None, help="max_completion_tokens cap")
     ap.add_argument("--budget", type=float, default=None, help="stop a batch above this USD total")
     ap.add_argument("--mock", action="store_true", help="offline mode, no API call")
+    ap.add_argument("--update-prices", action="store_true",
+                    help="refresh pricing.json from OpenAI's official pricing page (asks before saving)")
+    ap.add_argument("--prices-from-file", metavar="MD",
+                    help="with --update-prices: read a saved copy of the pricing page instead of the web")
+    ap.add_argument("--yes", action="store_true", help="with --update-prices: save without asking")
     args = ap.parse_args(argv)
+
+    if args.update_prices:
+        import price_updater as pu
+        try:
+            md = (Path(args.prices_from_file).read_text(encoding="utf-8") if args.prices_from_file
+                  else pu.fetch_markdown())
+            pu.update_pricing_file(PRICING_FILE, md, assume_yes=args.yes)
+        except pu.PriceParseError as e:
+            print(f"⛔ Price update stopped, pricing.json unchanged: {e}", file=sys.stderr)
+            return 1
+        except OSError as e:
+            print(f"⛔ Could not reach the pricing page ({e}). Existing prices kept.", file=sys.stderr)
+            return 1
+        return 0
+    if not (args.prompt or args.template or args.batch):
+        ap.error("give --prompt, --template, --batch or --update-prices")
 
     try:
         from dotenv import load_dotenv

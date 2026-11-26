@@ -1,7 +1,7 @@
 # Token & Cost Report — gpt-6-luna
 
 Generated: 2026-11-26 23:48  |  Requests: 4  |  Token estimator: tiktoken (o200k_base, assumed)
-Prices: USD per 1M tokens, OpenAI standard tier as listed by public price trackers (not read from OpenAI directly). Verify on https://developers.openai.com/api/docs/pricing before relying on totals. Checked 2026-11-26.
+Prices: USD per 1M tokens, Standard tier, from OpenAI's official pricing page https://developers.openai.com/api/docs/pricing (checked 2026-11-27). Prices change; re-check before relying on totals.
 
 | # | Request | Est. prompt | Prompt | Cached | Completion | Reasoning | Cost (USD) | Latency (s) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
