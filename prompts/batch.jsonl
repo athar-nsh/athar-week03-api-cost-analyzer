@@ -1,0 +1,4 @@
+{"template": "explain_concept", "vars": {"topic": "forward chaining"}}
+{"template": "explain_concept", "vars": {"topic": "certainty factors in expert systems"}}
+{"template": "make_mcq", "vars": {"topic": "knowledge representation with frames", "n": "3"}}
+{"template": "rule_trace", "vars": {"rules": "R1: IF A AND B THEN C\nR2: IF C THEN D\nR3: IF D AND E THEN F", "facts": "A, B, E"}}

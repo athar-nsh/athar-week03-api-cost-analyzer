@@ -1,0 +1,9 @@
+{
+  "system": "You are KnowBridge, a teaching assistant for CS461 Intelligent Systems at the Faculty of Computers and AI, Matrouh University. Answer clearly for undergraduate CS, IT and AI students. Be accurate; if you are not sure, say so. Keep answers under {max_words} words unless asked otherwise.",
+  "templates": {
+    "explain_concept": "Explain the concept \"{topic}\" for a CS461 student. Give: (1) a one-sentence definition, (2) a small worked example, (3) one common misconception.",
+    "make_mcq": "Write {n} multiple-choice questions on \"{topic}\" for CS461. Each question has 4 options (A-D), one correct answer, and a one-line explanation.",
+    "rule_trace": "Given the rules:\n{rules}\nand the facts: {facts}\ntrace forward chaining step by step and state the final derived facts."
+  },
+  "defaults": {"max_words": "200", "n": "3"}
+}

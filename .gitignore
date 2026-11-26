@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+reports/*
+!reports/.gitkeep
+!reports/SAMPLE_mock_report.md
+!reports/RESULTS_week03.md

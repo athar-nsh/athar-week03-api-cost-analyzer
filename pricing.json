@@ -1,0 +1,22 @@
+{
+  "_note": "USD per 1M tokens, OpenAI standard tier. Verify on https://developers.openai.com/api/docs/pricing before relying on totals. Checked 2026-11-26.",
+  "currency": "USD",
+  "models": {
+    "gpt-6-luna": {
+      "input": 0.10,
+      "cached_input": 0.01,
+      "output": 0.50,
+      "long_context": {"threshold_tokens": 272000, "input_multiplier": 2.0, "output_multiplier": 1.5}
+    },
+    "gpt-6-sol": {
+      "input": 2.00,
+      "cached_input": 0.20,
+      "output": 10.00
+    },
+    "gpt-5.6-luna": {
+      "input": 0.20,
+      "cached_input": 0.02,
+      "output": 1.20
+    }
+  }
+}
