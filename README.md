@@ -88,7 +88,8 @@ tests/test_cost.py       9 offline tests
 reports/                 generated logs and reports (git-ignored, except the sample)
 ```
 
-## Notes
+## Design choices & limitations
 
-- `tiktoken` may not have a mapping for the newest model names yet. In that case the script uses `o200k_base` and labels the estimate "assumed". If the tokenizer cannot be loaded at all, it falls back to roughly 4 characters per token. The API's own `usage` figures are always the ones billed.
-- `reports/SAMPLE_mock_report.md` is an example of the report format, made from an offline **mock** run. It is not real API data.
+- **Pre-call token estimate.** `tiktoken` has no official mapping for `gpt-6-luna` yet, so the script uses the `o200k_base` encoding and labels the estimate "assumed". In the real run this estimate was within **1 token of the API count on every request (+0.9% mean error)**. If no tokenizer can be loaded, the script falls back to about 4 characters per token and says so. Billing always uses the API's own `usage` figures, never the estimate.
+- **Prices are data, not code.** Rates live in `pricing.json` and must be checked against the official pricing page, since providers change them.
+- **Offline mode for testing and teaching.** `--mock` runs the whole pipeline without a key or cost, so the 9 unit tests and classroom demos need no API access. `reports/SAMPLE_mock_report.md` shows the report format from such a run; the real results are in `reports/RESULTS_week03.md`.
