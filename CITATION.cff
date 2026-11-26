@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use or refer to this work, please cite it as below."
+title: "Chat Completion API with Automated Token and Cost Analysis"
+abstract: "Python script that calls the OpenAI Chat Completions API, estimates tokens before each request with tiktoken, reads real usage after it, and computes cost from OpenAI's official Standard pricing, with streaming, a spending cap and a price updater. Applied to KnowBridge prompts for CS461. ITI Athar initiative, Week 3."
+authors:
+  - family-names: "El-Shoafy"
+    given-names: "Noha Abd El-Kader"
+    affiliation: "Faculty of Computers and Artificial Intelligence, Matrouh University, Egypt"
+type: software
+version: "1.1"
+date-released: "2026-11-27"
+license: MIT
+repository-code: "https://github.com/athar-nsh/athar-week03-api-cost-analyzer"
+keywords:
+  - openai
+  - llm
+  - token-cost
+  - python
+  - iti-athar
